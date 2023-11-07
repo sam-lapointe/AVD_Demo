@@ -48,6 +48,31 @@ param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string 
 
+@description('The Public address IP SKU. Basic or Standard.')
+@allowed([
+  'basic'
+  'standard'
+])
+param publicIpSku string = 'standard'
+
+@description('The public IP address allocation method.')
+@allowed([
+  'Static'
+  'Dynamic'
+])
+param publicIpAllocationMethod string = 'Static'
+
+
+resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
+  name: 'ip-${suffix}-1'
+  location: location
+  sku: {
+    name: publicIpSku
+  }
+  properties: {
+    publicIPAllocationMethod: publicIpAllocationMethod
+  }
+}
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2023-05-01' = {
   name: 'nic-${suffix}-1'
@@ -62,6 +87,9 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2023-05-01' = {
           privateIPAddress: dcPrivateIpAdress
           subnet: {
             id: '${vnetID}/subnets/${subnetName}'
+          }
+          publicIPAddress: {
+            id: publicIpAddress.id
           }
         }
       }
@@ -129,7 +157,6 @@ resource vmDC_CreateADForest 'Microsoft.Compute/virtualMachines/extensions@2023-
       }
     }
     protectedSettings: {
-      configurationUrlSasToken: _artifactsLocationSasToken
       configurationArguments: {
         adminCreds: {
           userName: domainAdminUsername
@@ -138,4 +165,8 @@ resource vmDC_CreateADForest 'Microsoft.Compute/virtualMachines/extensions@2023-
       }
     }
   }
+  dependsOn: [
+    publicIpAddress
+    networkInterface
+  ]
 }

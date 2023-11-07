@@ -58,7 +58,7 @@ param _artifactsLocation string
 
 @description('Auto-generated token to access _artifactsLocation')
 @secure()
-param _artifactsLocationSasToken string 
+param _artifactsLocationSasToken string = ''
 
 
 var dcPrivateIpAdress = '10.0.0.4'
@@ -93,6 +93,9 @@ module vnet 'modules/vnet.bicep' = {
     location: location
     tags: tags
     networkSecurityGroupID: networkSecurityGroup.outputs.id
+    dnsServerAddress: [
+      dcPrivateIpAdress
+    ]
   }
 }
 
