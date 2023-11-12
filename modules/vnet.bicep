@@ -44,9 +44,13 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {
           networkSecurityGroup: {
             id: networkSecurityGroupID
           }
+          serviceEndpoints: [
+            {
+              service: 'Microsoft.Storage'
+            }
+          ]
         }
       }
-
     ]
   }
 }

@@ -83,5 +83,19 @@
             DependsOn = "[xPendingReboot]RebootAfterPromotion"
         }
 
+        xADGroup AVDUsers
+        {
+            GroupName = "AVD-Users"
+            Ensure = "Present"
+            DependsOn = "[xPendingReboot]RebootAfterPromotion"
+        }
+
+        xADGroup AVDAdmin
+        {
+            GroupName = "AVD-Admins"
+            Ensure = "Present"
+            DependsOn = "[xPendingReboot]RebootAfterPromotion"
+        }
+
    }
 }

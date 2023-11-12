@@ -137,6 +137,18 @@ module workspace 'modules/workspace.bicep' = {
   }
 }
 
+module storage 'modules/storage.bicep' = {
+  scope: rgAVDStorage
+  name: 'storage'
+  params: {
+    location: location
+    subnetName: subnetName
+    suffix: suffix
+    tags: tags
+    vnetID: vnet.outputs.id
+  }
+}
+
 module keyvault 'modules/key_vault.bicep' = {
   scope: rgAVD
   name: 'keyVault'

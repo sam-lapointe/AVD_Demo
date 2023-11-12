@@ -31,7 +31,7 @@ param enableRbacAuthorization bool = true
 
 
 resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
-  name: 'kv-${suffix}-${take(uniqueString(resourceGroup().id), 6)}'
+  name: 'kv-${suffix}-${take(uniqueString(resourceGroup().id), 4)}'
   location: location
   tags: tags
   properties: {
