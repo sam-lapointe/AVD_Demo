@@ -49,9 +49,11 @@ param ouPath string
 @description('The URL for the configuration module needed to join a VM as a session host.')
 param avdAgentModuleURL string = 'https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_1.0.02482.227.zip'
 
+@description('The host pool token used to add the session hosts to the host pool.')
+param hostPoolToken string
 
 // Retrieve the host pool info to pass into the module that builds session hosts. These values will be used when invoking the VM extension to install AVD agents.
-resource hostPoolToken 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' existing = {
+resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' existing = {
   name: 'hp-${suffix}'
 }
 
@@ -127,7 +129,7 @@ resource sessionHostDomainJoin 'Microsoft.Compute/virtualMachines/extensions@202
     settings: {
       name: domainName
       ouPath: ouPath
-      user: domainAdminUsername
+      user: '${domainAdminUsername}@${domainName}'
       restart: true
       options: domainJoinOptions
     }
@@ -153,8 +155,8 @@ resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2023-
       modulesUrl: avdAgentModuleURL
       configurationFunction: 'Configuration.ps1\\AddSessionHost'
       properties: {
-        hostPoolName: hostPoolToken.name
-        registrationInfoToken: hostPoolToken.properties.registrationInfo.token
+        hostPoolName: hostPool.name
+        registrationInfoToken: hostPoolToken
         aadJoin: false
       }
     }

@@ -6,6 +6,9 @@ param suffix string = 'AVD'
 @description('The name of the resource group for the AVD resources.')
 param rgNameAVD string = 'RG-${suffix}'
 
+@description('The name of the resource group for the storage account of the AVD infrastructure.')
+param rgNameAVDStorage string = 'RG-${suffix}-Storage'
+
 @description('The name of the resource group for the Domain Services resources.')
 param rgNameDS string = 'RG-DS'
 
@@ -69,6 +72,11 @@ resource rgAVD 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   location: location
 }
 
+resource rgAVDStorage 'Microsoft.Resources/resourceGroups@2023-07-01' = {
+  name: rgNameAVDStorage
+  location: location
+}
+
 resource rgDS 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   name: rgNameDS
   location: location
@@ -93,9 +101,6 @@ module vnet 'modules/vnet.bicep' = {
     location: location
     tags: tags
     networkSecurityGroupID: networkSecurityGroup.outputs.id
-    dnsServerAddress: [
-      dcPrivateIpAdress
-    ]
   }
 }
 
@@ -181,10 +186,29 @@ module domainController 'modules/domain_controller.bicep' = {
   }
 }
 
+module updateVnetDNS1 'modules/vnet.bicep' = {
+  scope: rgAVD
+  name: 'updateVnetDNS1'
+  params: {
+    vnetName: vnetName
+    subnet1Name: subnetName
+    location: location
+    tags: tags
+    networkSecurityGroupID: networkSecurityGroup.outputs.id
+    dnsServerAddress: [
+      dcPrivateIpAdress
+    ]
+  }
+  dependsOn: [
+    domainController
+  ]
+}
+
 module sessionHosts 'modules/session_host.bicep' = {
   scope: rgAVD
   name: 'sessionHosts'
   params: {
+    hostPoolToken: hostPool.outputs.token
     domainAdminPassword: domainAdminPassword
     domainAdminUsername: domainAdminUsername
     domainName: domainName
@@ -200,6 +224,7 @@ module sessionHosts 'modules/session_host.bicep' = {
   }
   dependsOn: [
     domainController
+    updateVnetDNS1
     hostPool
   ]
 }

@@ -1,5 +1,5 @@
 @description('The suffix to add to the resources name.')
-param suffix string = 'DC'
+param prefix string = 'DC'
 
 @description('The location of the Session Hosts.')
 param location string
@@ -64,7 +64,7 @@ param publicIpAllocationMethod string = 'Static'
 
 
 resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
-  name: 'ip-${suffix}-1'
+  name: 'ip-${prefix}-1'
   location: location
   sku: {
     name: publicIpSku
@@ -75,7 +75,7 @@ resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
 }
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2023-05-01' = {
-  name: 'nic-${suffix}-1'
+  name: 'nic-${prefix}-1'
   location: location
   tags: tags
   properties: {
@@ -98,12 +98,12 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2023-05-01' = {
 }
 
 resource vmDC 'Microsoft.Compute/virtualMachines@2023-07-01' = {
-  name: '${suffix}-1'
+  name: '${prefix}-1'
   location: location
   tags: tags
   properties: {
     osProfile: {
-      computerName: '${suffix}-1'
+      computerName: '${prefix}-1'
       adminUsername: localAdminUsername
       adminPassword: localAdminPassword
       windowsConfiguration: {

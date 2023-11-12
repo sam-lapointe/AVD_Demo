@@ -33,7 +33,7 @@ param maxSessionLimit int
 @description('The current time, used to create the registration token.')
 param baseTime string = utcNow('u')
 
-var expirationTime = dateTimeAdd(baseTime, 'PT24H')
+var expirationTime = dateTimeAdd(baseTime, 'PT2H')
 
 resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' = {
   name: name
@@ -53,3 +53,4 @@ resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' = {
 }
 
 output id string = hostPool.id
+output token string = reference(hostPool.id).registrationInfo.token

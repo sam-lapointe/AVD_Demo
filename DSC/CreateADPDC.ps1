@@ -14,6 +14,7 @@
 
     Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot
     [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
+    $path = $DomainName.split(".")
 
     Node localhost
     {
@@ -70,6 +71,16 @@
         xPendingReboot RebootAfterPromotion{
             Name = "RebootAfterPromotion"
             DependsOn = "[xADDomain]FirstDS"
+        }
+
+        xADOrganizationalUnit SessionHosts
+        {
+            Name = "SessionHosts"
+            Path = "DC=$($path[0]),DC=$($path[1])"
+            ProtectedFromAccidentalDeletion = $true
+            Ensure = "Present"
+            Description = "OU for the session hosts."
+            DependsOn = "[xPendingReboot]RebootAfterPromotion"
         }
 
    }
