@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 @description('The suffix to add to the resources name.')
-param suffix string = 'AVD'
+param suffix string = 'AVD1'
 
 @description('The name of the resource group for the AVD resources.')
 param rgNameAVD string = 'RG-${suffix}'
@@ -20,8 +20,14 @@ param tags object = {
   Usage: 'AVD'
 }
 
-@description('The domain name.')
-param domainName string = 'slapointe.com'
+@description('True if it is for an Azure Active Directory joined environment, else False.')
+param isAADJoined bool = true
+
+@description('True if you use FSLogix for the profiles and need the storage created, else False.')
+param fsLogix bool = false
+
+@description('The domain name, if not AAD Joined')
+param domainName string = ''
 
 @description('The virtual network name.')
 param vnetName string = 'Vnet-${suffix}'
@@ -44,20 +50,19 @@ param localAdminUsername string
 @minLength(12)
 param localAdminPassword string
 
-@description('The domain admin username.')
+@description('The domain admin username, if not AAD Joined')
 @secure()
-param domainAdminUsername string
+param domainAdminUsername string = ''
 
-@description('The domain admin password. Must be at least 12 characters.')
+@description('The domain admin password, if not AAD Joined. Must be at least 12 characters.')
 @secure()
-@minLength(12)
-param domainAdminPassword string
+param domainAdminPassword string = ''
 
 @description('The Organizational Unit that you want to add the session hosts to.')
 param ouPath string = 'OU=SessionHosts,DC=slapointe,DC=com'
 
 @description('The location of resources such as templates and DSC modules that the script is dependent')
-param _artifactsLocation string 
+param _artifactsLocation string = ''
 
 @description('Auto-generated token to access _artifactsLocation')
 @secure()
@@ -72,12 +77,12 @@ resource rgAVD 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   location: location
 }
 
-resource rgAVDStorage 'Microsoft.Resources/resourceGroups@2023-07-01' = {
+resource rgAVDStorage 'Microsoft.Resources/resourceGroups@2023-07-01' = if(fsLogix) {
   name: rgNameAVDStorage
   location: location
 }
 
-resource rgDS 'Microsoft.Resources/resourceGroups@2023-07-01' = {
+resource rgDS 'Microsoft.Resources/resourceGroups@2023-07-01' = if(!isAADJoined) {
   name: rgNameDS
   location: location
 }
@@ -111,6 +116,7 @@ module hostPool 'modules/host_pool.bicep' = {
     name: 'hp-${suffix}'
     location: location
     tags: tags
+    isAADJoined: isAADJoined
     maxSessionLimit: maxSessionLimit
   }
 }
@@ -137,7 +143,7 @@ module workspace 'modules/workspace.bicep' = {
   }
 }
 
-module storage 'modules/storage.bicep' = {
+module storage 'modules/storage.bicep' = if(fsLogix) {
   scope: rgAVDStorage
   name: 'storage'
   params: {
@@ -179,7 +185,7 @@ module keyvault 'modules/key_vault.bicep' = {
   }
 }
 
-module domainController 'modules/domain_controller.bicep' = {
+module domainController 'modules/domain_controller.bicep' = if(!isAADJoined) {
   scope: rgDS
   name: 'domainController'
   params: {
@@ -198,7 +204,7 @@ module domainController 'modules/domain_controller.bicep' = {
   }
 }
 
-module updateVnetDNS1 'modules/vnet.bicep' = {
+module updateVnetDNS1 'modules/vnet.bicep' = if(!isAADJoined) {
   scope: rgAVD
   name: 'updateVnetDNS1'
   params: {
@@ -220,6 +226,7 @@ module sessionHosts 'modules/session_host.bicep' = {
   scope: rgAVD
   name: 'sessionHosts'
   params: {
+    isAADJoined: isAADJoined
     hostPoolToken: hostPool.outputs.token
     domainAdminPassword: domainAdminPassword
     domainAdminUsername: domainAdminUsername

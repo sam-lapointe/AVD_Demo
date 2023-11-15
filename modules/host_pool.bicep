@@ -6,6 +6,9 @@ param location string
 
 param tags object
 
+@description('True if it is for an Azure Active Directory joined environment, else False.')
+param isAADJoined bool
+
 @description('The preferred app group type. Either Desktop or RemoteApp.')
 @allowed([
   'Desktop'
@@ -44,6 +47,7 @@ resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' = {
     loadBalancerType: loadBalancingType
     preferredAppGroupType: preferredAppGroupType
     maxSessionLimit: maxSessionLimit
+    customRdpProperty: 'drivestoredirect:s:*;audiomode:i:0;videoplaybackmode:i:1;redirectclipboard:i:1;redirectprinters:i:1;devicestoredirect:s:*;redirectcomports:i:1;redirectsmartcards:i:1;usbdevicestoredirect:s:*;enablecredsspsupport:i:1;use multimon:i:1;${(isAADJoined ? 'targetisaadjoined:i:1' : '')}'
     registrationInfo: {
       expirationTime: expirationTime
       token: null

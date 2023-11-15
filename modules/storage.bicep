@@ -83,7 +83,7 @@ resource profileShareRetention 'Microsoft.Storage/storageAccounts/fileServices@2
 
 resource profileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
   parent: profileShareRetention
-  name: 'profileshare-${toLower(suffix)}-${take(uniqueString(resourceGroup().id), 6)}'
+  name: 'profileshare-${toLower(suffix)}-${take(uniqueString(resourceGroup().id), 4)}'
   properties: {
     enabledProtocols: 'SMB'
     shareQuota: profileShareQuota

@@ -6,6 +6,9 @@ param location string
 
 param tags object
 
+@description('True if it is for an Azure Active Directory joined environment, else False.')
+param isAADJoined bool
+
 @description('The VM Size.')
 @allowed([
   'Standard_B2s'
@@ -117,7 +120,7 @@ resource sessionHost 'Microsoft.Compute/virtualMachines@2023-07-01' = [for i in 
   dependsOn: [networkInterface[i]]
 }]
 
-resource sessionHostDomainJoin 'Microsoft.Compute/virtualMachines/extensions@2023-07-01' = [for i in range(0, sessionHostNum): {
+resource sessionHostDomainJoin 'Microsoft.Compute/virtualMachines/extensions@2023-07-01' = [for i in range(0, sessionHostNum): if(!isAADJoined){
   name: '${sessionHost[i].name}/JoinDomain'
   location: location
   tags: tags
@@ -136,6 +139,21 @@ resource sessionHostDomainJoin 'Microsoft.Compute/virtualMachines/extensions@202
     protectedSettings: {
       password: domainAdminPassword
     }
+  }
+  dependsOn: [
+    sessionHost[i]
+  ]
+}]
+
+resource sessionHostAADLogin 'Microsoft.Compute/virtualMachines/extensions@2023-07-01' = [for i in range(0, sessionHostNum): if (isAADJoined) {
+  name: '${sessionHost[i].name}/AADLoginForWindows'
+  location: location
+  tags: tags
+  properties: {
+    publisher: 'Microsoft.Azure.ActiveDirectory'
+    type: 'AADLoginForWindows'
+    typeHandlerVersion: '1.0'
+    autoUpgradeMinorVersion: true
   }
   dependsOn: [
     sessionHost[i]
