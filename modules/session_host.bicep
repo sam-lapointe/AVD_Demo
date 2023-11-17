@@ -50,7 +50,7 @@ param domainJoinOptions int = 3
 param ouPath string
 
 @description('The URL for the configuration module needed to join a VM as a session host.')
-param avdAgentModuleURL string = 'https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_1.0.02482.227.zip'
+param avdAgentModuleURL string = 'https://wvdportalstorageblob.blob.core.windows.net/galleryartifacts/Configuration_1.0.02507.246.zip'
 
 @description('The host pool token used to add the session hosts to the host pool.')
 param hostPoolToken string
@@ -83,6 +83,9 @@ resource sessionHost 'Microsoft.Compute/virtualMachines@2023-07-01' = [for i in 
   name: 'vm-${take(suffix, 9)}-${i + 1}'
   location: location
   tags: tags
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     osProfile: {
       computerName: 'vm-${take(suffix, 9)}-${i + 1}'
@@ -152,11 +155,12 @@ resource sessionHostAADLogin 'Microsoft.Compute/virtualMachines/extensions@2023-
   properties: {
     publisher: 'Microsoft.Azure.ActiveDirectory'
     type: 'AADLoginForWindows'
-    typeHandlerVersion: '1.0'
+    typeHandlerVersion: '2.0'
     autoUpgradeMinorVersion: true
   }
   dependsOn: [
     sessionHost[i]
+    sessionHostAVDAgent[i]
   ]
 }]
 

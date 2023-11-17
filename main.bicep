@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 @description('The suffix to add to the resources name.')
-param suffix string = 'AVD1'
+param suffix string = 'AVD'
 
 @description('The name of the resource group for the AVD resources.')
 param rgNameAVD string = 'RG-${suffix}'
