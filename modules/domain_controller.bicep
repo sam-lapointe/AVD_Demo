@@ -170,3 +170,6 @@ resource vmDC_CreateADForest 'Microsoft.Compute/virtualMachines/extensions@2023-
     networkInterface
   ]
 }
+
+output dcName string = vmDC.name
+output dcID string = vmDC.id

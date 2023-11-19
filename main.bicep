@@ -68,6 +68,20 @@ param _artifactsLocation string = ''
 @secure()
 param _artifactsLocationSasToken string = ''
 
+@description('True to enable backup of the session hosts.')
+param backupSessionHosts bool = true
+
+@description('True to enable bacup of the storage account.')
+param backupStorageAccount bool = fsLogix ? true : false
+
+@description('True to backup the Active Directory Domain Controller.')
+param backupADDC bool = isAADJoined ? false : true
+
+@description('The number of days of the retention of Instant Restore Point.')
+param instantRPRetention int = 7
+
+@description('The number of days of the backup retention.')
+param dailyRetention int = 30
 
 var dcPrivateIpAdress = '10.0.0.4'
 
@@ -106,6 +120,29 @@ module vnet 'modules/vnet.bicep' = {
     location: location
     tags: tags
     networkSecurityGroupID: networkSecurityGroup.outputs.id
+  }
+}
+
+module backupVault 'modules/backup.bicep' = {
+  scope: rgAVD
+  name: 'backupVault'
+  params: {
+    backupADDC: backupADDC
+    backupSessionHosts: backupSessionHosts
+    backupStorageAccount: backupStorageAccount
+    dailyRetention: dailyRetention
+    instantRPRetention: instantRPRetention
+    location: location
+    suffix: suffix
+    tags: tags
+    rgDCName: backupADDC ? rgNameDS : ''
+    dcName: backupADDC ? domainController.outputs.dcName : ''
+    dcID: backupADDC ? domainController.outputs.dcID : ''
+    rgStorageName: backupStorageAccount ? rgNameAVDStorage : ''
+    profileShareAccountName: backupStorageAccount ? storage.outputs.storageShareAccountName : ''
+    profileShareAccountID: backupStorageAccount ? storage.outputs.storageShareAccountID : ''
+    profileShareName: backupStorageAccount ? storage.outputs.profileShareName : ''
+    sessionHosts: backupSessionHosts ? sessionHosts.outputs.sessionHosts : []
   }
 }
 

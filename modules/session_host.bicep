@@ -119,6 +119,9 @@ resource sessionHost 'Microsoft.Compute/virtualMachines@2023-07-01' = [for i in 
         }
       ]
     }
+    securityProfile: {
+      securityType: 'TrustedLaunch'
+    }
   }
   dependsOn: [networkInterface[i]]
 }]
@@ -186,4 +189,9 @@ resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2023-
   dependsOn: [
     sessionHostDomainJoin[i]
   ]
+}]
+
+output sessionHosts array = [for i in range(0,sessionHostNum): {
+  name: sessionHost[i].name
+  ID: sessionHost[i].id
 }]

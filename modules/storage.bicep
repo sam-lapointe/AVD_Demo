@@ -89,3 +89,7 @@ resource profileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@202
     shareQuota: profileShareQuota
   }
 }
+
+output storageShareAccountName string = profileShareAccount.name
+output storageShareAccountID string = profileShareAccount.id
+output profileShareName string = profileShare.name
