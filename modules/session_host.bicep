@@ -6,6 +6,9 @@ param location string
 
 param tags object
 
+@description('True to enable diagnostics for the Azure Virtual Deskop resources.')
+param enableDiagnostics bool
+
 @description('True if it is for an Azure Active Directory joined environment, else False.')
 param isAADJoined bool
 
@@ -54,6 +57,10 @@ param avdAgentModuleURL string = 'https://wvdportalstorageblob.blob.core.windows
 
 @description('The host pool token used to add the session hosts to the host pool.')
 param hostPoolToken string
+
+param diagnosticWorkspaceID string 
+
+param dataCollectionRuleID string
 
 // Retrieve the host pool info to pass into the module that builds session hosts. These values will be used when invoking the VM extension to install AVD agents.
 resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' existing = {
@@ -189,6 +196,30 @@ resource sessionHostAVDAgent 'Microsoft.Compute/virtualMachines/extensions@2023-
   dependsOn: [
     sessionHostDomainJoin[i]
   ]
+}]
+
+resource sessionHostMonitor 'Microsoft.Compute/virtualMachines/extensions@2023-07-01' = [for i in range(0, sessionHostNum) : if(enableDiagnostics) {
+  name: '${sessionHost[i].name}/AzureMonitorWindowsAgent'
+  location: location
+  tags: tags
+  properties: {
+    publisher: 'Microsoft.Azure.Monitor'
+    type: 'AzureMonitorWindowsAgent'
+    typeHandlerVersion: '1.0'
+    autoUpgradeMinorVersion: true
+    enableAutomaticUpgrade: true
+  }
+  dependsOn: [
+    sessionHost[i]
+  ]
+}]
+
+resource dcrAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2022-06-01' = [for i in range(0, sessionHostNum) : if(enableDiagnostics) {
+  name: '${sessionHost[i].name}-${suffix}-DCR'
+  scope: sessionHost[i]
+  properties: {
+    dataCollectionRuleId: dataCollectionRuleID
+  }
 }]
 
 output sessionHosts array = [for i in range(0,sessionHostNum): {

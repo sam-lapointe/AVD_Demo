@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
-@description('The suffix to add to the resources name.')
-param suffix string = 'AVD'
+@description('The suffix to add to the resources name. Only letters.')
+param suffix string = 'AVV'
 
 @description('The name of the resource group for the AVD resources.')
 param rgNameAVD string = 'RG-${suffix}'
@@ -20,6 +20,9 @@ param tags object = {
   Usage: 'AVD'
 }
 
+@description('True to enable diagnostics for the Azure Virtual Deskop resources.')
+param enableDiagnostics bool = true
+
 @description('True if it is for an Azure Active Directory joined environment, else False.')
 param isAADJoined bool = true
 
@@ -36,7 +39,7 @@ param vnetName string = 'Vnet-${suffix}'
 param subnetName string = 'Subnet-${suffix}'
 
 @description('The number of session host to create.')
-param sessionHostNum int = 1
+param sessionHostNum int = 2
 
 @description('The host pool max session limit per VM.')
 param maxSessionLimit int = 2
@@ -123,6 +126,16 @@ module vnet 'modules/vnet.bicep' = {
   }
 }
 
+module diagnostics 'modules/diagnostics.bicep' = if (enableDiagnostics) {
+  scope: rgAVD
+  name: 'diagnostics'
+  params: {
+    location: location
+    suffix: suffix
+    tags: tags
+  }
+}
+
 module backupVault 'modules/backup.bicep' = {
   scope: rgAVD
   name: 'backupVault'
@@ -153,8 +166,10 @@ module hostPool 'modules/host_pool.bicep' = {
     name: 'hp-${suffix}'
     location: location
     tags: tags
+    enableDiagnostics: enableDiagnostics
     isAADJoined: isAADJoined
     maxSessionLimit: maxSessionLimit
+    diagnosticWorkspaceID: diagnostics.outputs.logAVDID
   }
 }
 
@@ -176,7 +191,9 @@ module workspace 'modules/workspace.bicep' = {
     name: 'ws-${suffix}'
     location: location
     tags: tags
+    enableDiagnostics: enableDiagnostics
     applicationGroupID: applicationGroup.outputs.id
+    diagnosticWorkspaceID: diagnostics.outputs.logAVDID
   }
 }
 
@@ -265,9 +282,12 @@ module sessionHosts 'modules/session_host.bicep' = {
   params: {
     isAADJoined: isAADJoined
     hostPoolToken: hostPool.outputs.token
+    dataCollectionRuleID: diagnostics.outputs.dataCollectionRuleID
+    diagnosticWorkspaceID: diagnostics.outputs.logSHID
     domainAdminPassword: domainAdminPassword
     domainAdminUsername: domainAdminUsername
     domainName: domainName
+    enableDiagnostics: enableDiagnostics
     localAdminPassword: localAdminPassword
     localAdminUsername: localAdminUsername
     location: location

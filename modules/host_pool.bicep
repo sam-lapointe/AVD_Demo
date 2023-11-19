@@ -6,6 +6,9 @@ param location string
 
 param tags object
 
+@description('True to enable diagnostics for the Azure Virtual Deskop resources.')
+param enableDiagnostics bool
+
 @description('True if it is for an Azure Active Directory joined environment, else False.')
 param isAADJoined bool
 
@@ -36,6 +39,8 @@ param maxSessionLimit int
 @description('The current time, used to create the registration token.')
 param baseTime string = utcNow('u')
 
+param diagnosticWorkspaceID string 
+
 var expirationTime = dateTimeAdd(baseTime, 'PT2H')
 
 resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' = {
@@ -53,6 +58,25 @@ resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2023-09-05' = {
       token: null
       registrationTokenOperation: 'Update'
     }
+  }
+}
+
+resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (enableDiagnostics) {
+  scope: hostPool
+  name: '${hostPool.name}-WVDInsights'
+  properties: {
+    workspaceId: diagnosticWorkspaceID
+    logs: [
+      {
+        category: null
+        categoryGroup: 'allLogs'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
   }
 }
 
