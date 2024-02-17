@@ -8,7 +8,7 @@ This project is unfinished and will not be updated. As a result, the repository 
 
 ## Default Deployment Resources
 
-![Default AVD Environment](url)
+![Default AVD Environment](https://github.com/sam-lapointe/AVD_Demo/blob/main/AVD-Diagram.png)
 
 ## How to deploy
 
