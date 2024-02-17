@@ -12,7 +12,6 @@ var logAVD = 'diagnostics-${suffix}'
 var logSH = 'log-sh-${suffix}'
 var logWorkspacesNames = [
   logAVD
-  logSH
 ]
 
 resource logWorkspaces 'Microsoft.OperationalInsights/workspaces@2022-10-01' = [for workspace in logWorkspacesNames : {
@@ -113,5 +112,4 @@ resource dataCollectionRule 'Microsoft.Insights/dataCollectionRules@2022-06-01' 
 }
 
 output logAVDID string = logWorkspaces[indexOf(logWorkspacesNames, logAVD)].id
-output logSHID string = logWorkspaces[indexOf(logWorkspacesNames, logSH)].id
 output dataCollectionRuleID string = dataCollectionRule.id

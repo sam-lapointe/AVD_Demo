@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 @description('The suffix to add to the resources name. Only letters.')
-param suffix string = 'AVV'
+param suffix string = 'AVD'
 
 @description('The name of the resource group for the AVD resources.')
 param rgNameAVD string = 'RG-${suffix}'
@@ -39,7 +39,7 @@ param vnetName string = 'Vnet-${suffix}'
 param subnetName string = 'Subnet-${suffix}'
 
 @description('The number of session host to create.')
-param sessionHostNum int = 2
+param sessionHostNum int = 1
 
 @description('The host pool max session limit per VM.')
 param maxSessionLimit int = 2
@@ -283,7 +283,6 @@ module sessionHosts 'modules/session_host.bicep' = {
     isAADJoined: isAADJoined
     hostPoolToken: hostPool.outputs.token
     dataCollectionRuleID: diagnostics.outputs.dataCollectionRuleID
-    diagnosticWorkspaceID: diagnostics.outputs.logSHID
     domainAdminPassword: domainAdminPassword
     domainAdminUsername: domainAdminUsername
     domainName: domainName

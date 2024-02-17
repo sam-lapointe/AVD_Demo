@@ -58,8 +58,6 @@ param avdAgentModuleURL string = 'https://wvdportalstorageblob.blob.core.windows
 @description('The host pool token used to add the session hosts to the host pool.')
 param hostPoolToken string
 
-param diagnosticWorkspaceID string 
-
 param dataCollectionRuleID string
 
 // Retrieve the host pool info to pass into the module that builds session hosts. These values will be used when invoking the VM extension to install AVD agents.
